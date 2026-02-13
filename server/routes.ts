@@ -55,7 +55,7 @@ export async function registerRoutes(
   app.use(passport.session());
 
   passport.use(
-    new LocalStrategy(async (username, password, done) => {
+    new LocalStrategy({ usernameField: "email" }, async (username, password, done) => {
       try {
         const user = await storage.getUserByEmail(username);
         if (!user) return done(null, false, { message: "Invalid email" });

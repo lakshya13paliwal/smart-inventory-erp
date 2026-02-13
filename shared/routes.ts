@@ -48,7 +48,7 @@ export const api = {
       method: 'POST' as const,
       path: '/api/login' as const,
       input: z.object({
-        username: z.string(), // Passport uses 'username' field usually, but we map email to it
+        email: z.string().email(), // Match the field name sent by the frontend
         password: z.string(),
       }),
       responses: {
