@@ -28,10 +28,9 @@ export interface IStorage {
   getSuppliers(): Promise<Supplier[]>;
   createSupplier(supplier: InsertSupplier): Promise<Supplier>;
 
-  // Team
-  getTeamMembers(): Promise<TeamMember[]>;
-  createTeamMember(member: InsertTeamMember): Promise<TeamMember>;
-  deleteTeamMember(id: number): Promise<void>;
+  // Settings
+  getSettings(): Promise<Settings>;
+  updateSettings(updates: UpdateSettingsRequest): Promise<Settings>;
 
   // Forecasting (Mock/Algorithm)
   getForecast(productId: number): Promise<ForecastData>;
@@ -107,6 +106,26 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTeamMember(id: number): Promise<void> {
     await db.delete(teamMembers).where(eq(teamMembers.id, id));
+  }
+
+  // === Settings ===
+  async getSettings(): Promise<Settings> {
+    const [s] = await db.select().from(settings).limit(1);
+    if (!s) {
+      const [newSettings] = await db.insert(settings).values({}).returning();
+      return newSettings;
+    }
+    return s;
+  }
+
+  async updateSettings(updates: UpdateSettingsRequest): Promise<Settings> {
+    const current = await this.getSettings();
+    const [updated] = await db
+      .update(settings)
+      .set(updates)
+      .where(eq(settings.id, current.id))
+      .returning();
+    return updated;
   }
 
   // === Forecasting ===

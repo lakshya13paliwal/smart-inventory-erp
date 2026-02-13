@@ -4,9 +4,11 @@ import {
   insertProductSchema, 
   insertSupplierSchema, 
   insertTeamMemberSchema,
+  insertSettingsSchema,
   products,
   suppliers,
   teamMembers,
+  settings,
   users
 } from './schema';
 
