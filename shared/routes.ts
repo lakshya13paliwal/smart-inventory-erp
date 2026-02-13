@@ -175,6 +175,24 @@ export const api = {
       },
     },
   },
+  settings: {
+    get: {
+      method: 'GET' as const,
+      path: '/api/settings' as const,
+      responses: {
+        200: z.custom<typeof settings.$inferSelect>(),
+      },
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/settings' as const,
+      input: insertSettingsSchema.partial(),
+      responses: {
+        200: z.custom<typeof settings.$inferSelect>(),
+        400: errorSchemas.validation,
+      },
+    },
+  },
 };
 
 export function buildUrl(path: string, params?: Record<string, string | number>): string {

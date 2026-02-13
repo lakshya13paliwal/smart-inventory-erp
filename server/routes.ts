@@ -218,6 +218,26 @@ export async function registerRoutes(
     res.sendStatus(204);
   });
 
+  // === Settings Routes ===
+  app.get(api.settings.get.path, isAuthenticated, async (req, res) => {
+    const settings = await storage.getSettings();
+    res.json(settings);
+  });
+
+  app.patch(api.settings.update.path, isAuthenticated, async (req, res) => {
+    try {
+      const input = api.settings.update.input.parse(req.body);
+      const settings = await storage.updateSettings(input);
+      res.json(settings);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors[0].message });
+      } else {
+        throw err;
+      }
+    }
+  });
+
   // === Seeding ===
   await seedDatabase();
 

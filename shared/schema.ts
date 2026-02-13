@@ -58,6 +58,15 @@ export const teamMembers = pgTable("team_members", {
   email: text("email"),
 });
 
+// Enterprise Settings
+export const settings = pgTable("settings", {
+  id: serial("id").primaryKey(),
+  country: text("country").notNull().default("India"),
+  currency: text("currency").notNull().default("INR"),
+  addressFormat: text("address_format").notNull().default("IN"),
+  organizationName: text("organization_name").notNull().default("Smart Inventory Systems"),
+});
+
 // === RELATIONS ===
 export const productsRelations = relations(products, ({ one, many }) => ({
   supplier: one(suppliers, {
@@ -84,6 +93,7 @@ export const insertSupplierSchema = createInsertSchema(suppliers).omit({ id: tru
 export const insertProductSchema = createInsertSchema(products).omit({ id: true, lastRestocked: true });
 export const insertSaleSchema = createInsertSchema(sales).omit({ id: true });
 export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id: true });
+export const insertSettingsSchema = createInsertSchema(settings).omit({ id: true });
 
 // === EXPLICIT API CONTRACT TYPES ===
 
@@ -104,6 +114,10 @@ export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
 // Team
 export type TeamMember = typeof teamMembers.$inferSelect;
 export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
+
+// Settings
+export type Settings = typeof settings.$inferSelect;
+export type UpdateSettingsRequest = Partial<Settings>;
 
 // Forecasting
 export interface ForecastData {
