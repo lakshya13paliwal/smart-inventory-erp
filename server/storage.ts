@@ -2,11 +2,12 @@ import {
   db 
 } from "./db";
 import { 
-  users, products, suppliers, sales, teamMembers,
+  users, products, suppliers, sales, teamMembers, settings,
   type User, type InsertUser,
   type Product, type InsertProduct, type UpdateProductRequest,
   type Supplier, type InsertSupplier,
   type TeamMember, type InsertTeamMember,
+  type Settings, type UpdateSettingsRequest,
   type ForecastData
 } from "@shared/schema";
 import { eq, desc, sql } from "drizzle-orm";

@@ -6,7 +6,8 @@ import {
   TrendingUp, 
   LogOut, 
   Info,
-  Menu
+  Menu,
+  Landmark
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLogout } from "@/hooks/use-auth";
