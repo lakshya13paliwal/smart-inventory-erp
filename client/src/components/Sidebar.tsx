@@ -20,6 +20,7 @@ const navItems = [
   { href: "/suppliers", label: "Suppliers", icon: Users },
   { href: "/forecast", label: "Demand Forecast", icon: TrendingUp },
   { href: "/team", label: "Team & Credits", icon: Info },
+  { href: "/settings", label: "Settings", icon: Landmark },
 ];
 
 export function Sidebar() {

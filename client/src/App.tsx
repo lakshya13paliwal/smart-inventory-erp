@@ -13,6 +13,7 @@ import Inventory from "@/pages/Inventory";
 import Suppliers from "@/pages/Suppliers";
 import Forecast from "@/pages/Forecast";
 import Team from "@/pages/Team";
+import Settings from "@/pages/Settings";
 import NotFound from "@/pages/not-found";
 
 // Protected Route Wrapper
@@ -69,6 +70,9 @@ function Router() {
       </Route>
       <Route path="/team">
         <ProtectedRoute component={Team} />
+      </Route>
+      <Route path="/settings">
+        <ProtectedRoute component={Settings} />
       </Route>
 
       <Route component={NotFound} />
