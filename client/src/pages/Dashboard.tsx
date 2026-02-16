@@ -17,6 +17,29 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
+import { 
+  ResponsiveContainer, 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  PieChart, 
+  Pie, 
+  Cell 
+} from "recharts";
+
+const MOCK_REVENUE_DATA = [
+  { month: 'Sep', revenue: 45000 },
+  { month: 'Oct', revenue: 52000 },
+  { month: 'Nov', revenue: 48000 },
+  { month: 'Dec', revenue: 61000 },
+  { month: 'Jan', revenue: 55000 },
+  { month: 'Feb', revenue: 67000 },
+];
+
+const COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
 
 export default function Dashboard() {
   const { data: products, isLoading: loadingProducts } = useProducts();
@@ -117,9 +140,42 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="h-[300px]">
-              <div className="h-full w-full flex items-center justify-center text-muted-foreground italic text-sm">
-                Revenue visualization loading...
-              </div>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={MOCK_REVENUE_DATA}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis 
+                    dataKey="month" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 12, fill: '#64748b' }} 
+                    dy={10}
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 12, fill: '#64748b' }}
+                    tickFormatter={(value) => `₹${value/1000}k`}
+                  />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                    formatter={(value) => [`₹${value}`, 'Revenue']}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke="#3b82f6" 
+                    strokeWidth={3}
+                    fillOpacity={1} 
+                    fill="url(#colorRevenue)" 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
           <Card className="shadow-sm">
@@ -130,8 +186,45 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="h-[300px]">
-              <div className="h-full w-full flex items-center justify-center text-muted-foreground italic text-sm">
-                Distribution chart loading...
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={products?.reduce((acc: any[], p) => {
+                      const category = p.category || 'Other';
+                      const existing = acc.find(c => c.name === category);
+                      if (existing) {
+                        existing.value += p.currentStock;
+                      } else {
+                        acc.push({ name: category, value: p.currentStock });
+                      }
+                      return acc;
+                    }, []).slice(0, 5)}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {products?.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex flex-wrap justify-center gap-4 mt-2">
+                {products?.reduce((acc: string[], p) => {
+                  if (p.category && !acc.includes(p.category)) acc.push(p.category);
+                  return acc;
+                }, []).slice(0, 5).map((cat, i) => (
+                  <div key={cat} className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                    <span className="text-xs text-slate-600">{cat}</span>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>

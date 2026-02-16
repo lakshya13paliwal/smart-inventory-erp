@@ -3,7 +3,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useProducts, useCreateProduct, useDeleteProduct } from "@/hooks/use-inventory";
+import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/use-inventory";
 import { useSuppliers } from "@/hooks/use-suppliers";
 import {
   Table,
@@ -31,7 +31,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Search, Trash2, Edit, AlertCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertProductSchema } from "@shared/schema";
+import { insertProductSchema, type Product } from "@shared/schema";
 import { z } from "zod";
 
 // Frontend schema for form (handling string -> number coercion)
@@ -39,7 +39,7 @@ const productFormSchema = insertProductSchema.extend({
   currentStock: z.coerce.number(),
   reorderLevel: z.coerce.number(),
   unitPrice: z.coerce.number(),
-  supplierId: z.coerce.number().optional(),
+  supplierId: z.coerce.number().optional().nullable(),
 });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -47,10 +47,12 @@ type ProductFormValues = z.infer<typeof productFormSchema>;
 export default function Inventory() {
   const [search, setSearch] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   
   const { data: products } = useProducts();
   const { data: suppliers } = useSuppliers();
   const { mutate: createProduct, isPending: isCreating } = useCreateProduct();
+  const { mutate: updateProduct, isPending: isUpdating } = useUpdateProduct();
   const { mutate: deleteProduct } = useDeleteProduct();
 
   const form = useForm<ProductFormValues>({
@@ -63,15 +65,39 @@ export default function Inventory() {
       currentStock: 0,
       reorderLevel: 10,
       unitPrice: 0,
+      supplierId: null,
     }
   });
 
   const onSubmit = (data: ProductFormValues) => {
-    createProduct(data, {
-      onSuccess: () => {
-        setIsCreateOpen(false);
-        form.reset();
-      }
+    if (editingProduct) {
+      updateProduct({ id: editingProduct.id, ...data }, {
+        onSuccess: () => {
+          setEditingProduct(null);
+          form.reset();
+        }
+      });
+    } else {
+      createProduct(data, {
+        onSuccess: () => {
+          setIsCreateOpen(false);
+          form.reset();
+        }
+      });
+    }
+  };
+
+  const handleEdit = (product: Product) => {
+    setEditingProduct(product);
+    form.reset({
+      name: product.name,
+      sku: product.sku,
+      category: product.category,
+      description: product.description || "",
+      currentStock: product.currentStock,
+      reorderLevel: product.reorderLevel,
+      unitPrice: Number(product.unitPrice),
+      supplierId: product.supplierId,
     });
   };
 
@@ -162,6 +188,77 @@ export default function Inventory() {
           </Dialog>
         </PageHeader>
 
+        <Dialog open={!!editingProduct} onOpenChange={(open) => !open && setEditingProduct(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Edit Product: {editingProduct?.name}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Product Name</Label>
+                  <Input {...form.register("name")} placeholder="e.g. Wireless Mouse" />
+                  {form.formState.errors.name && <p className="text-xs text-red-500">{form.formState.errors.name.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label>SKU</Label>
+                  <Input {...form.register("sku")} placeholder="e.g. WM-001" />
+                  {form.formState.errors.sku && <p className="text-xs text-red-500">{form.formState.errors.sku.message}</p>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <Input {...form.register("category")} placeholder="e.g. Electronics" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Supplier</Label>
+                  <Select 
+                    defaultValue={editingProduct?.supplierId?.toString()} 
+                    onValueChange={(val) => form.setValue("supplierId", parseInt(val))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select supplier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {suppliers?.map(s => (
+                        <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Unit Price (₹)</Label>
+                  <Input type="number" step="0.01" {...form.register("unitPrice")} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Current Stock</Label>
+                  <Input type="number" {...form.register("currentStock")} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Reorder Level</Label>
+                  <Input type="number" {...form.register("reorderLevel")} />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Input {...form.register("description")} placeholder="Product details..." />
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button type="submit" disabled={isUpdating}>
+                  {isUpdating ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
         <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
           <div className="p-4 border-b flex items-center gap-4">
             <div className="relative flex-1 max-w-sm">
@@ -217,7 +314,12 @@ export default function Inventory() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-blue-600">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-slate-500 hover:text-blue-600"
+                            onClick={() => handleEdit(product)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button 
