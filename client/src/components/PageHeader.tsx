@@ -1,3 +1,5 @@
+import { NotificationsBell } from "./NotificationsBell";
+
 interface PageHeaderProps {
   title: string;
   description?: string;
@@ -18,6 +20,7 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
         )}
       </div>
       <div className="flex items-center gap-3">
+        <NotificationsBell />
         {children}
       </div>
     </div>

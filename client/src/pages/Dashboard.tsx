@@ -108,6 +108,35 @@ export default function Dashboard() {
           />
         </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                Monthly Revenue Projection
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <div className="h-full w-full flex items-center justify-center text-muted-foreground italic text-sm">
+                Revenue visualization loading...
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Activity className="h-5 w-5 text-primary" />
+                Stock Distribution
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <div className="h-full w-full flex items-center justify-center text-muted-foreground italic text-sm">
+                Distribution chart loading...
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Recent Alerts */}
           <Card className="lg:col-span-2 shadow-sm">
